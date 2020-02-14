@@ -1,8 +1,12 @@
+//lecture source (lambda - Applied JS - components II - Christina 2/13/20 - Web28FT)
+
+
+
 /* Step 1: using axios, send a GET request to the following URL 
            (replacing the palceholder with your Github name):
            https://api.github.com/users/<your name>
 */
-//import axios from 'axios';
+//import axios from 'axios'; //I'm using CDN for this - not imports so this didn't work - importing would require an install 
 // axios.<method> will now provide autocomplete and parameter typings
 //axios.get('https://api.github.com/users/KateAnn19');
 
@@ -17,39 +21,7 @@
    data in order to use it to build your component function 
 
 
-let myInfo = {
-  "login": "KateAnn19",
-  "id": 48461273,
-  "node_id": "MDQ6VXNlcjQ4NDYxMjcz",
-  "avatar_url": "https://avatars1.githubusercontent.com/u/48461273?v=4",
-  "gravatar_id": "",
-  "url": "https://api.github.com/users/KateAnn19",
-  "html_url": "https://github.com/KateAnn19",
-  "followers_url": "https://api.github.com/users/KateAnn19/followers",
-  "following_url": "https://api.github.com/users/KateAnn19/following{/other_user}",
-  "gists_url": "https://api.github.com/users/KateAnn19/gists{/gist_id}",
-  "starred_url": "https://api.github.com/users/KateAnn19/starred{/owner}{/repo}",
-  "subscriptions_url": "https://api.github.com/users/KateAnn19/subscriptions",
-  "organizations_url": "https://api.github.com/users/KateAnn19/orgs",
-  "repos_url": "https://api.github.com/users/KateAnn19/repos",
-  "events_url": "https://api.github.com/users/KateAnn19/events{/privacy}",
-  "received_events_url": "https://api.github.com/users/KateAnn19/received_events",
-  "type": "User",
-  "site_admin": false,
-  "name": "Kate ",
-  "company": null,
-  "blog": "",
-  "location": "Lafayette, CO",
-  "email": null,
-  "hireable": true,
-  "bio": "I am a software development student learning Javascript, HTML and CSS currently",
-  "public_repos": 35,
-  "public_gists": 1,
-  "followers": 2,
-  "following": 4,
-  "created_at": "2019-03-12T01:23:48Z",
-  "updated_at": "2020-02-13T04:24:48Z"
-}
+
 
    Skip to Step 3.
 */
@@ -90,10 +62,23 @@ const followersArray = [];
 
 */
 
-let container = document.querySelector('.cards');
 
+
+//---------------------------------------------------------------------------------------------------
+//refactor this below when finished using comma syntax for document.createElement so it doesn't need to be repeated - also watch lecture video for explanation 
+//--------------------------------------------------------------------------------------------------------------
 
 function userProfiles(obj){
+  for (let key in obj) {
+    if (obj[key] == null | undefined) {
+      obj[key] = 'User has not provided a '+key+'.';
+    }
+    if (typeof obj[key] == Number) {
+      obj[key] = obj[key].toString();
+    }
+  }
+
+
   let cardContainer = document.createElement('div');
   let imageTag = document.createElement('img');
   let cardInfo = document.createElement('div');
@@ -113,16 +98,18 @@ function userProfiles(obj){
   
   imageTag.src = obj.avatar_url;
   name.textContent = obj.name;
-  username = obj.login;
+  username.textContent = obj.login;
   location.textContent = `Location: ${obj.location}`;
-  profile.textContent = `Profile: `
+  
+  
   link.href= obj.html_url;
+  profile.textContent = `Profile: ${link}`;
   followers1.textContent = `Followers: ${obj.followers}`;
   following2.textContent = `Following: ${obj.following}`;
   bio.textContent = obj.bio;
 
   cardContainer.appendChild(imageTag);
-  cardConatiner.appendChild(cardInfo);
+  cardContainer.appendChild(cardInfo);
   cardInfo.appendChild(name);
   cardInfo.appendChild(username);
   cardInfo.appendChild(location);
@@ -132,44 +119,81 @@ function userProfiles(obj){
   cardInfo.appendChild(following2);
   cardInfo.appendChild(bio);
 
-  return cardContainer;
+  console.log(cardInfo)
 
+  
+
+  return cardContainer;
 }
 
-axios.get('https://api.github.com/users/KateAnn19', {
-        params: {
-        ID: 12345
-        }
-    })
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+//this is declared outside the function and is the big container the individual bios will be attached to. It needs it declared outside because of scope
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+let container = document.querySelector('.cards'); 
+//---------------------------------------------------------------------------------------------------
+
+// Step 1: using axios, send a GET request to the following URL 
+//            (replacing the placeholder with your Github name):
+//            https://api.github.com/users/<your name>
+
+
+//comment this out to stop requests happening so i don't get a limit - git hub does have a rate limit
+function getUserInfo(username){
+  axios.get(`https://api.github.com/users/${username}`)
       .then(response => {
-        // Remember response is an object, response.data is an array.
+
+        //console.log(response);this is the first thing you want to do when you do a get request because you want to see the data  
+        // Remember response is a BIG object, response.data is an array.
+        //this is where the parent element will be attached
+
+        let newUser = userProfiles(response.data);
+        container.appendChild(newUser);
+      })  
+      
+      //don't put semicolon will break the chain 
+      .catch(error => {
+        console.log("Error:", error);
+      });
+}
+getUserInfo('KateAnn19')
+
+axios.get('https://api.github.com/users/KateAnn19/followers')
+       .then(response => {
         response.data.forEach(content => {
-            //let button = buttonCreator(item);
-            container.appendChild(userProfiles(content));
+
+         //followersArray.push(content.login);
+         getUserInfo(content.login);
+         
         })
-    })
-    .catch( () => {
-        console.log("Error:");
-    })
 
+        // followersArray.forEach(follower => {
+        //   getUserInfo(follower)
+        // })
+         //console.log(followersArray);  
+       })
 
+       .catch(error => {
+        console.log("Error:", error);
+      });
 
+     
 
-
-// data.map(content => {
-//   // Remember, we always need to return something when we use .map
-//   return 
-// });
-
-/* List of LS Instructors Github username's: 
-  tetondan
-  dustinmyers
-  justsml
-  luishrd
-  bigknell
+/* Step 4: Pass the data received from Github into your function, 
+           create a new component and add it to the DOM as a child of .cards
 */
-let tetondan = "https://api.github.com/users/tetondan";
-let dustinemyers = "https://api.github.com/users/dustinmyers";
-let justsml = "https://api.github.com/users/luishrd";
-let bigknewll = "https://api.github.com/users/bigknell";
-let kate = "https://api.github.com/users/KateAnn19";
+
+
+//----------------------------------------------------------------------------------------------------------
+//class example below - need to review video and go over 
+//----------------------------------------------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------------------------
+//Questions for after hours 
+//---------------------------------------------------------------------------------------
+/* Step 4: Pass the data received from Github into your function, 
+           create a new component and add it to the DOM as a child of .cards
+
+
+           create a new component - where is this exactly?
+*/
